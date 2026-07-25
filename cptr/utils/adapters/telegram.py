@@ -286,7 +286,6 @@ class TelegramAdapter(BaseAdapter):
             audio = message["audio"]
             file_data = await self._download_file(audio["file_id"])
             if file_data:
-                from cptr.utils.bridge import Attachment
                 fname = audio.get("file_name", "audio.mp3")
                 attachments.append(Attachment(
                     type="audio",
