@@ -17,7 +17,7 @@
 	let formName = $state('');
 	let formProvider = $state<'openai' | 'anthropic'>('openai');
 	let formApiType = $state<'chat_completions' | 'responses'>('chat_completions');
-	let formProviderType = $state<'default' | 'llama.cpp'>('default');
+	let formProviderType = $state<'default' | 'llama.cpp' | 'openrouter'>('default');
 	let formBaseUrl = $state('');
 	let formApiKey = $state('');
 	let formPrefixId = $state('');
@@ -131,6 +131,7 @@
 			>
 				<option value="default">{$t('general.default')}</option>
 				<option value="llama.cpp">llama.cpp</option>
+				<option value="openrouter">OpenRouter</option>
 			</select>
 		{/if}
 

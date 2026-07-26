@@ -27,8 +27,8 @@
 	let formApiType = $state<'chat_completions' | 'responses'>(
 		connection.api_type === 'responses' ? 'responses' : 'chat_completions'
 	);
-	let formProviderType = $state<'default' | 'llama.cpp'>(
-		connection.provider_type === 'llama.cpp' ? 'llama.cpp' : 'default'
+	let formProviderType = $state<'default' | 'llama.cpp' | 'openrouter'>(
+		connection.provider_type || 'default'
 	);
 	let formBaseUrl = $state(connection.base_url || '');
 	let formApiKey = $state('');
@@ -166,6 +166,7 @@
 			>
 				<option value="default">{$t('general.default')}</option>
 				<option value="llama.cpp">llama.cpp</option>
+				<option value="openrouter">OpenRouter</option>
 			</select>
 		{/if}
 

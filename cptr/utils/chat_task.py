@@ -1854,11 +1854,11 @@ async def run_chat_task(
         except Exception:
             chat_models_config = {}
         builtin_tools = resolve_builtin_tools_config(chat_models_config, model, configured_model)
-        provider_type = (
-            "llama.cpp"
-            if provider == "openai" and connection.get("provider_type") == "llama.cpp"
-            else "default"
-        )
+        pt = connection.get("provider_type")
+        if provider == "openai" and pt in ("llama.cpp", "openrouter"):
+            provider_type = pt
+        else:
+            provider_type = "default"
         messages, loaded_summary = await _load_message_history(chat_id, message_id)
         skill_settings = await get_skill_settings()
         skill_authoring_allowed = _has_prior_real_chat_content(messages, loaded_summary)

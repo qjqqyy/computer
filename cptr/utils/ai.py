@@ -564,8 +564,9 @@ def _to_openai_messages(
 
     Strict default OpenAI-compatible requests do not receive provider-specific
     reasoning fields.  llama.cpp compatibility replays text reasoning as
-    reasoning_content. Other non-standard fields (fc_id in tool_calls) are
-    stripped.
+    reasoning_content.  openrouter compatibility replays reasoning as
+    reasoning_details (preferred) or reasoning (plaintext fallback).
+    Other non-standard fields (fc_id in tool_calls) are stripped.
     """
     result = []
     if instructions:
@@ -598,6 +599,8 @@ def _to_openai_messages(
                 rc = _reasoning_items_to_content(ri)
                 if rc:
                     new_m["reasoning_content"] = rc
+            elif provider_type == "openrouter" and ri and new_m.get("role") == "assistant":
+                _add_openrouter_reasoning(new_m, ri)
             result.append(new_m)
         else:
             out = dict(m)
@@ -612,8 +615,40 @@ def _to_openai_messages(
                 rc = _reasoning_items_to_content(ri)
                 if rc:
                     out["reasoning_content"] = rc
+            elif provider_type == "openrouter" and ri and out.get("role") == "assistant":
+                _add_openrouter_reasoning(out, ri)
             result.append(out)
     return result
+
+
+def _add_openrouter_reasoning(msg: dict, reasoning_items: list[dict]) -> None:
+    """Add OpenRouter-style reasoning fields to a Chat Completions assistant message.
+
+    Collects reasoning_details from replayable items.  Falls back to a plaintext
+    ``reasoning`` field when no detail blocks are available.
+    """
+    all_details: list[dict] = []
+    for item in reasoning_items or []:
+        if (
+            not isinstance(item, dict)
+            or item.get("type") != "reasoning"
+            or item.get("status") not in (None, "completed")
+            or str(item.get("id", "")).startswith("reasoning-")
+        ):
+            continue
+        if item.get("reasoning_details"):
+            details = item["reasoning_details"]
+            if isinstance(details, list):
+                all_details.extend(copy.deepcopy(details))
+            else:
+                all_details.append(copy.deepcopy(details))
+
+    if all_details:
+        msg["reasoning_details"] = all_details
+    else:
+        rc = _reasoning_items_to_content(reasoning_items)
+        if rc:
+            msg["reasoning"] = rc
 
 
 async def stream_openai_completions(

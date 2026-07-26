@@ -235,8 +235,8 @@ async def create_connection(body: CreateConnectionRequest, request: Request):
         "name": body.name,
         "provider": body.provider,
         "api_type": body.api_type,  # "chat_completions" | "responses" (openai only)
-        "provider_type": "llama.cpp"
-        if body.provider == "openai" and body.provider_type == "llama.cpp"
+        "provider_type": body.provider_type
+        if body.provider == "openai" and body.provider_type in ("llama.cpp", "openrouter")
         else "default",
         "prefix_id": body.prefix_id,
         "base_url": body.base_url,
@@ -269,8 +269,8 @@ async def update_connection(conn_id: str, body: UpdateConnectionRequest, request
         conn["api_type"] = body.api_type
     if "provider_type" in body.model_fields_set:
         conn["provider_type"] = (
-            "llama.cpp"
-            if conn.get("provider") == "openai" and body.provider_type == "llama.cpp"
+            body.provider_type
+            if conn.get("provider") == "openai" and body.provider_type in ("llama.cpp", "openrouter")
             else "default"
         )
     if body.prefix_id is not None:
@@ -400,7 +400,7 @@ class CreateConnectionRequest(BaseModel):
     name: str
     provider: str  # "anthropic" | "openai"
     api_type: str = "chat_completions"  # "chat_completions" | "responses" (openai only)
-    provider_type: Optional[str] = None  # None | "default" | "llama.cpp" (openai only)
+    provider_type: Optional[str] = None  # None | "default" | "llama.cpp" | "openrouter" (openai only)
     prefix_id: Optional[str] = None  # e.g. "openrouter" → "openrouter/model-id"
     base_url: Optional[str] = None
     api_key: Optional[str] = None
